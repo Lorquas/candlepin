@@ -34,6 +34,7 @@ import org.xnap.commons.i18n.I18n;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -151,8 +152,26 @@ public class ProductCurator extends AbstractHibernateCurator<Product> {
             .list();
     }
 
+    public ResultIterator<Product> iterateByOwner(Owner owner) {
+        return this.iterate(
+            this.createSecureCriteria()
+                .createAlias("owners", "owner")
+                .add(Restrictions.eq("owner.id", owner.getId()))
+        );
+    }
+
+    @Transactional
     public List<Product> listAllByIds(Owner owner, Collection<? extends Serializable> ids) {
         return this.listByCriteria(
+            this.createSecureCriteria()
+                .createAlias("owners", "owner")
+                .add(Restrictions.eq("owner.id", owner.getId()))
+                .add(Restrictions.in("id", ids))
+        );
+    }
+
+    public ResultIterator<Product> iterateAllByIds(Owner owner, Collection<? extends Serializable> ids) {
+        return this.iterate(
             this.createSecureCriteria()
                 .createAlias("owners", "owner")
                 .add(Restrictions.eq("owner.id", owner.getId()))
