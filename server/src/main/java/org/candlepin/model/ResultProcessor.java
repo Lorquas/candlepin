@@ -22,8 +22,11 @@ package org.candlepin.model;
  * ResultProcessors can abort processing of a query's results at any time by returning false from
  * the process method. Doing so will close the backing cursor immediately, discarding the remaining
  * rows.
+ *
+ * @param <T>
+ *  The type to be processed by this result processor
  */
-public interface ResultProcessor<E> {
+public interface ResultProcessor<T> {
 
     /**
      * Processes a given row of a query. This will likely be called multiple times for a query
@@ -34,6 +37,6 @@ public interface ResultProcessor<E> {
      * @return
      *  true if the query using this result processor should continue processing rows; false otherwise
      */
-    boolean process(E row);
+    boolean process(T row);
 
 }

@@ -55,12 +55,24 @@ import javax.ws.rs.ext.Provider;
 @Consumes({"application/*+json", "text/json"})
 public class JsonProvider extends JacksonJsonProvider {
 
-    public static void register(boolean indentJson) {
-        ResteasyProviderFactory rpf = ResteasyProviderFactory.getInstance();
-        JsonProvider jsonprovider = new JsonProvider(indentJson);
-        rpf.registerProviderInstance(jsonprovider);
-        RegisterBuiltin.register(rpf);
+    private static JsonProvider registeredInstance;
+
+    public static JsonProvider register(boolean indentJson) {
+        if (registeredInstance == null) {
+            registeredInstance = new JsonProvider(indentJson);
+
+            ResteasyProviderFactory rpf = ResteasyProviderFactory.getInstance();
+            rpf.registerProviderInstance(registeredInstance);
+            RegisterBuiltin.register(rpf);
+        }
+
+        return registeredInstance;
     }
+
+    public static JsonProvider getRegisteredInstance() {
+        return registeredInstance;
+    }
+
 
     @Inject
     public JsonProvider(Configuration config) {
@@ -84,6 +96,7 @@ public class JsonProvider extends JacksonJsonProvider {
         configureHateoasObjectMapper(mapper, indentJson);
         setMapper(mapper);
     }
+
     private void configureHateoasObjectMapper(ObjectMapper mapper, boolean indentJson) {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 

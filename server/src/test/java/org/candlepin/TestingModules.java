@@ -108,7 +108,6 @@ import org.quartz.spi.JobFactory;
 import org.xnap.commons.i18n.I18n;
 
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Properties;
 

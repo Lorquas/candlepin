@@ -33,6 +33,7 @@ import org.candlepin.model.ProductContent;
 import org.candlepin.model.ProductCurator;
 import org.candlepin.model.ResultIterator;
 import org.candlepin.pinsetter.tasks.RefreshPoolsForProductJob;
+import org.candlepin.resteasy.IterableStreamingOutput;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -43,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.xnap.commons.i18n.I18n;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -61,18 +61,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonEncoding;
-import javax.ws.rs.WebApplicationException;
-import java.io.IOException;
-import java.io.OutputStream;
-import org.candlepin.resteasy.JsonProvider;
+
+
 
 /**
  * API Gateway into /product
@@ -202,26 +193,11 @@ public class OwnerProductResource {
 
         Owner owner = this.getOwnerByKey(ownerKey);
 
-        final ResultIterator<Product> iterator = productIds.isEmpty() ?
+        ResultIterator<Product> iterator = productIds.isEmpty() ?
             this.productCurator.iterateByOwner(owner) :
             this.productCurator.iterateAllByIds(owner, productIds);
 
-        final ObjectMapper mapper = new JsonProvider(true).locateMapper(Object.class, MediaType.APPLICATION_JSON_TYPE);
-
-        StreamingOutput output = new StreamingOutput() {
-            @Override
-            public void write(OutputStream stream) throws IOException, WebApplicationException {
-                JsonGenerator generator = mapper.getJsonFactory().createJsonGenerator(stream, JsonEncoding.UTF8);
-
-                while (iterator.hasNext()) {
-                    mapper.writeValue(generator, iterator.next());
-                }
-
-                iterator.close();
-            }
-        };
-
-        return Response.ok(output).build();
+        return Response.ok(new IterableStreamingOutput(iterator)).build();
     }
 
     /**
