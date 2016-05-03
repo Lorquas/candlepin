@@ -61,6 +61,10 @@ import java.util.TreeSet;
  */
 public class PoolCurator extends AbstractHibernateCurator<Pool> {
 
+    /** The default number of expired pools that will be fetched in a single call */
+    public static final int EXPIRED_POOL_BLOCK_SIZE = 2048;
+
+
     private static Logger log = LoggerFactory.getLogger(PoolCurator.class);
     private CriteriaRules poolCriteria;
     @Inject
@@ -195,16 +199,44 @@ public class PoolCurator extends AbstractHibernateCurator<Pool> {
         return listAvailableEntitlementPools(null, owner, productId, null, false);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Fetches a block of expired pool from the database, using the default block size of 2048
+     * pools. To fetch all expired pools, this method should be called repeatedly until it returns
+     * fewer pools than the block size.
+     *
+     * @return
+     *  a list of expired pools no larger than the default expired pool block size (2048)
+     */
     public List<Pool> listExpiredPools() {
-        Date today = new Date();
-        Criteria crit = createSecureCriteria().add(
-            Restrictions.lt("endDate", today));
-        List<Pool> results = crit.list();
-        if (results == null) {
-            results = new LinkedList<Pool>();
+        return this.listExpiredPools(EXPIRED_POOL_BLOCK_SIZE);
+    }
+
+    /**
+     * Fetches a block of expired pools from the database, using the specified block size. To fetch
+     * all expired pools, this method should be called repeatedly, until it returns fewer pools
+     * than the specified block size.
+     *
+     * @param blockSize
+     *  The maximum number of pools to fetch
+     *
+     * @throws IllegalArgumentException
+     *  if blockSize is not a positive integer
+     *
+     * @return
+     *  a list of expired pools no larger than the specified block size
+     */
+    @Transactional
+    public List<Pool> listExpiredPools(int blockSize) {
+        if (blockSize < 1) {
+            throw new IllegalArgumentException("invalid blockSize value: " + blockSize);
         }
-        return results;
+
+        Criteria criteria = this.createSecureCriteria()
+            .add(Restrictions.lt("endDate", new Date()))
+            .setMaxResults(blockSize);
+
+        List<Pool> results = (List<Pool>) criteria.list();
+        return results != null ? results : new LinkedList<Pool>();
     }
 
     @SuppressWarnings("unchecked")

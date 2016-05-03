@@ -575,20 +575,39 @@ public class CandlepinPoolManager implements PoolManager {
     }
 
     public void cleanupExpiredPools() {
-        List<Pool> pools = poolCurator.listExpiredPools();
-        log.info("Expired pools: {}", pools.size());
-        List<Pool> toDelete = new ArrayList<Pool>();
-        for (Pool p : pools) {
-            if (p.hasAttribute("derived_pool")) {
-                // Derived pools will be cleaned up when their parent entitlement
-                // is revoked.
-                continue;
+        int count = 0;
+        boolean loop = false;
+
+        do {
+            List<Pool> pools = poolCurator.listExpiredPools();
+            count += pools.size();
+
+            // Impl note:
+            // We're going to modify this list, so we need to know if it was a full block before we
+            // start processing it
+            loop = pools.size() >= PoolCurator.EXPIRED_POOL_BLOCK_SIZE;
+
+            for (Iterator<Pool> pi = pools.iterator(); pi.hasNext();) {
+                Pool pool = pi.next();
+                if (pool.hasAttribute("derived_pool")) {
+                    // Derived pools will be automatically cleaned up when their parent entitlement
+                    // is revoked
+                    pi.remove();
+                }
+
+                log.info("Cleaning up expired pool: {} (expired: {})", pool.getId(), pool.getEndDate());
             }
 
-            log.info("Cleaning up expired pool: {} ({})", p.getId(), p.getEndDate());
-            toDelete.add(p);
+            // Delete the block of pools
+            this.deletePools(pools);
+
+            // Cleanup memory to try to avoid flooding the heap
+            this.poolCurator.clear();
+        } while (loop);
+
+        if (count > 0) {
+            log.info("Cleaned up {} expired pools", count);
         }
-        deletePools(toDelete);
     }
 
     private boolean isExpired(Subscription subscription) {
@@ -1864,11 +1883,12 @@ public class CandlepinPoolManager implements PoolManager {
     @Override
     @Transactional
     public void deletePools(List<Pool> pools) {
-        if (log.isDebugEnabled()) {
-            log.debug("Delete pools: {}", getPoolIds(pools));
-        }
         if (pools.isEmpty()) {
             return;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Delete pools: {}", getPoolIds(pools));
         }
 
         List<Entitlement> entitlementsToRevoke = new ArrayList<Entitlement>();
