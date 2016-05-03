@@ -119,6 +119,7 @@ public class ResultIterator<E> implements Closeable, Iterator<E> {
         );
     }
 
+    @Override
     public void close() {
         if (this.toEvict != null) {
             this.session.evict(this.toEvict);

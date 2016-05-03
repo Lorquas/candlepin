@@ -32,6 +32,7 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SQLQuery;
+import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projection;
@@ -601,6 +602,114 @@ public abstract class AbstractHibernateCurator<E extends Persisted> {
         return count;
     }
 
+
+    /**
+     * Steps through the results of a column of the given query row-by-row, rather than dumping the
+     * entire query result into memory before processing it. This method will always pass the first
+     * column of each row to the processor.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param processor
+     *  A ResultProcessor instance to use for processing each result
+     *
+     * @return
+     *  the number of rows processed and sent to the result processor
+     */
+    protected int scroll(Query query, ResultProcessor<E> processor) {
+        return this.scroll(query, 0, false, processor);
+    }
+
+    /**
+     * Steps through the results of a column of the given query row-by-row, rather than dumping the
+     * entire query result into memory before processing it.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param column
+     *  The zero-indexed offset of the column to process
+     *
+     * @param processor
+     *  A ResultProcessor instance to use for processing each result
+     *
+     * @return
+     *  the number of rows processed and sent to the result processor
+     */
+    protected int scroll(Query query, int column, ResultProcessor<E> processor) {
+        return this.scroll(query, column, false, processor);
+    }
+
+    /**
+     * Steps through the results of a query row-by-row, rather than dumping the entire query result
+     * into memory before processing it.
+     * <p/>
+     * If this method is called with eviction enabled, the result processor must manually persist
+     * and flush each object that is changed, as any unflushed changes will be lost when the object
+     * is evicted.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param column
+     *  The zero-indexed offset of the column to process
+     *
+     * @param evict
+     *  Whether or not to auto-evict queried objects after they've been processed
+     *
+     * @param processor
+     *  A ResultProcessor instance to use for processing each result
+     *
+     * @return
+     *  the number of rows processed and sent to the result processor
+     */
+    @Transactional
+    protected int scroll(Query query, int column, boolean evict, ResultProcessor<E> processor) {
+        if (query == null) {
+            throw new IllegalArgumentException("query is null");
+        }
+
+        if (processor == null) {
+            throw new IllegalArgumentException("processor is null");
+        }
+
+        if (evict) {
+            query.setCacheMode(CacheMode.GET);
+        }
+
+        ScrollableResults cursor = query.scroll(ScrollMode.FORWARD_ONLY);
+        int count = 0;
+
+        try {
+            boolean cont = true;
+
+            if (evict) {
+                Session session = this.currentSession();
+
+                while (cont && cursor.next()) {
+                    E result = (E) cursor.get(column);
+
+                    cont = processor.process(result);
+                    session.evict(result);
+
+                    ++count;
+                }
+            }
+            else {
+                while (cont && cursor.next()) {
+                    cont = processor.process((E) cursor.get(column));
+                    ++count;
+                }
+            }
+        }
+        finally {
+            cursor.close();
+        }
+
+        return count;
+    }
+
     /**
      * Steps through the results of a query row-by-row, rather than dumping the entire query result
      * into memory before processing it. Unlike the base scroll method, this method sends each row
@@ -617,6 +726,48 @@ public abstract class AbstractHibernateCurator<E extends Persisted> {
      */
     @Transactional
     protected int rawScroll(Criteria query, ResultProcessor<Object[]> processor) {
+        if (query == null) {
+            throw new IllegalArgumentException("query is null");
+        }
+
+        if (processor == null) {
+            throw new IllegalArgumentException("processor is null");
+        }
+
+        ScrollableResults cursor = query.scroll(ScrollMode.FORWARD_ONLY);
+        int count = 0;
+
+        try {
+            boolean cont = true;
+
+            while (cont && cursor.next()) {
+                cont = processor.process(cursor.get());
+                ++count;
+            }
+        }
+        finally {
+            cursor.close();
+        }
+
+        return count;
+    }
+
+    /**
+     * Steps through the results of a query row-by-row, rather than dumping the entire query result
+     * into memory before processing it. Unlike the base scroll method, this method sends each row
+     * to the processor without performing any preprocessing or cleanup.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param processor
+     *  A ResultProcessor instance to use for processing each row
+     *
+     * @return
+     *  the number of rows processed by the result processor
+     */
+    @Transactional
+    protected int rawScroll(Query query, ResultProcessor<Object[]> processor) {
         if (query == null) {
             throw new IllegalArgumentException("query is null");
         }
@@ -697,7 +848,65 @@ public abstract class AbstractHibernateCurator<E extends Persisted> {
         }
 
         ScrollableResults cursor = query.scroll(ScrollMode.FORWARD_ONLY);
-        return new ResultIterator(this.currentSession(), cursor, column, evict);
+        return new ResultIterator<E>(this.currentSession(), cursor, column, evict);
+    }
+
+
+    /**
+     * Returns an iterator over the results of the given query.
+     * <p/>
+     * WARNING: This method must be called from within a transaction, and the iterator must
+     * remain within the bounds of that transaction.
+     *
+     * @param query
+     *  The query through which to scroll
+     */
+    protected ResultIterator<E> iterate(Query query) {
+        return this.iterate(query, 0, false);
+    }
+
+    /**
+     * Returns an iterator over the results of the given query.
+     * <p/>
+     * WARNING: This method must be called from within a transaction, and the iterator must
+     * remain within the bounds of that transaction.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param column
+     *  The zero-indexed offset of the column to process
+     */
+    protected ResultIterator<E> iterate(Query query, int column) {
+        return this.iterate(query, column, false);
+    }
+
+    /**
+     * Returns an iterator over the results of the given query.
+     * <p/>
+     * WARNING: This method must be called from within a transaction, and the iterator must
+     * remain within the bounds of that transaction.
+     *
+     * @param query
+     *  The query through which to scroll
+     *
+     * @param column
+     *  The zero-indexed offset of the column to process
+     *
+     * @param evict
+     *  Whether or not to auto-evict queried objects after they've been processed
+     */
+    protected ResultIterator<E> iterate(Query query, int column, boolean evict) {
+        if (query == null) {
+            throw new IllegalArgumentException("query is null");
+        }
+
+        if (evict) {
+            query.setCacheMode(CacheMode.GET);
+        }
+
+        ScrollableResults cursor = query.scroll(ScrollMode.FORWARD_ONLY);
+        return new ResultIterator<E>(this.currentSession(), cursor, column, evict);
     }
 
     /**
