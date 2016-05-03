@@ -33,7 +33,7 @@ import org.candlepin.model.ProductContent;
 import org.candlepin.model.ProductCurator;
 import org.candlepin.model.ResultIterator;
 import org.candlepin.pinsetter.tasks.RefreshPoolsForProductJob;
-import org.candlepin.resteasy.IterableStreamingOutput;
+import org.candlepin.resteasy.IterableStreamingOutputFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -81,11 +81,13 @@ public class OwnerProductResource {
     private ProductManager productManager;
     private Configuration config;
     private I18n i18n;
+    private IterableStreamingOutputFactory isoFactory;
 
     @Inject
     public OwnerProductResource(ProductCurator productCurator, ContentCurator contentCurator,
         OwnerCurator ownerCurator, ProductCertificateCurator productCertCurator,
-        ProductManager productManager, Configuration config, I18n i18n) {
+        ProductManager productManager, Configuration config, I18n i18n,
+        IterableStreamingOutputFactory isoFactory) {
 
         this.productCurator = productCurator;
         this.contentCurator = contentCurator;
@@ -94,6 +96,7 @@ public class OwnerProductResource {
         this.productManager = productManager;
         this.config = config;
         this.i18n = i18n;
+        this.isoFactory = isoFactory;
     }
 
     /**
@@ -197,7 +200,7 @@ public class OwnerProductResource {
             this.productCurator.iterateByOwner(owner) :
             this.productCurator.iterateAllByIds(owner, productIds);
 
-        return Response.ok(new IterableStreamingOutput(iterator)).build();
+        return Response.ok(this.isoFactory.create(iterator)).build();
     }
 
     /**

@@ -57,7 +57,7 @@ public class JsonProvider extends JacksonJsonProvider {
 
     private static JsonProvider registeredInstance;
 
-    public static JsonProvider register(boolean indentJson) {
+    public static void register(boolean indentJson) {
         if (registeredInstance == null) {
             registeredInstance = new JsonProvider(indentJson);
 
@@ -65,14 +65,7 @@ public class JsonProvider extends JacksonJsonProvider {
             rpf.registerProviderInstance(registeredInstance);
             RegisterBuiltin.register(rpf);
         }
-
-        return registeredInstance;
     }
-
-    public static JsonProvider getRegisteredInstance() {
-        return registeredInstance;
-    }
-
 
     @Inject
     public JsonProvider(Configuration config) {

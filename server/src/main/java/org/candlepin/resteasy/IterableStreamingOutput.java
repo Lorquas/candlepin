@@ -34,7 +34,7 @@ import javax.ws.rs.core.StreamingOutput;
  * an iterable collection to clients. Resources can use this to reduce boilerplate code, turning a
  * 10-line block (not including required imports) into a one-line statement:
  * <pre>
- *   return Response.ok(new IterableStreamingOutput(iterable)).build();
+ *   return Response.ok(new IterableStreamingOutput(iterable, jsonProvider)).build();
  * </pre>
  *
  * If a ResultIterator is provided, it will automatically be closed once all elements have been
@@ -47,41 +47,50 @@ public class IterableStreamingOutput<T> implements StreamingOutput {
 
     protected JsonProvider jsonProvider;
     protected ObjectMapper mapper;
+
     protected Iterator<T> iterator;
+    protected IteratorTransformer<T> transformer;
 
     /**
      * Creates a new IterableStreamingOutput using the given iterable collection as its data source
      * to stream to the client.
      *
+     * @param jsonProvider
+     *  A JsonProvider instance responsible for providing JSON conversion services
+     *
      * @param iterable
      *  The interable collection containing the data to stream to the client
+     *
+     * @throws NullPointerException
+     *  if iterable is null
      */
-    public IterableStreamingOutput(Iterable<T> iterable) {
-        this(iterable.iterator());
+    public IterableStreamingOutput(JsonProvider jsonProvider, Iterable<T> iterable) {
+        this(jsonProvider, iterable.iterator());
     }
 
     /**
      * Creates a new IterableStreamingOutput using the given iterator as its data source to stream
      * to the client.
      *
+     * @param jsonProvider
+     *  A JsonProvider instance responsible for providing JSON conversion services
+     *
      * @param iterator
      *  The iterator containing the data to stream to the client
      *
      * @throws IllegalArgumentException
-     *  if iterator is null
+     *  if either iterator or jsonProvider are null
      */
-    public IterableStreamingOutput(Iterator<T> iterator) {
+    public IterableStreamingOutput(JsonProvider jsonProvider, Iterator<T> iterator) {
+        if (jsonProvider == null) {
+            throw new IllegalArgumentException("jsonProvider is null");
+        }
+
         if (iterator == null) {
             throw new IllegalArgumentException("iterator is null");
         }
 
-        this.jsonProvider = JsonProvider.getRegisteredInstance();
-        if (this.jsonProvider == null) {
-            // Hrmm... this shouldn't happen, but it might, so... I guess just make a new instance
-            // and hope for the best...?
-            this.jsonProvider = new JsonProvider(true);
-        }
-
+        this.jsonProvider = jsonProvider;
         this.mapper = this.jsonProvider.locateMapper(Object.class, MediaType.APPLICATION_JSON_TYPE);
         this.iterator = iterator;
     }
@@ -91,8 +100,19 @@ public class IterableStreamingOutput<T> implements StreamingOutput {
         JsonGenerator generator = this.mapper.getJsonFactory().createGenerator(stream);
         generator.writeStartArray();
 
-        while (this.iterator.hasNext()) {
-            this.mapper.writeValue(generator, this.transform(this.iterator.next()));
+        if (this.transformer != null) {
+            while (this.iterator.hasNext()) {
+                T element = this.transformer.transform(this.iterator.next());
+
+                if (element != null) {
+                    this.mapper.writeValue(generator, element);
+                }
+            }
+        }
+        else {
+            while (this.iterator.hasNext()) {
+                this.mapper.writeValue(generator, this.iterator.next());
+            }
         }
 
         generator.writeEndArray();
@@ -105,20 +125,29 @@ public class IterableStreamingOutput<T> implements StreamingOutput {
     }
 
     /**
-     * Transforms the element before it is written to the output stream. This method is called once
-     * for each element in the backing iterator.
-     * <p/>
-     * The default implementation provides no transformation and simply returns the input value
-     * as given. Subclasses needing to transform elements in the iterator should override this
-     * method instead of overriding the write() method.
+     * Sets the transformer to use to transform data from the backing iterator before writing it to
+     * the output stream. If the provided transformer is null, no transformation will be performed
+     * on the data.
      *
-     * @param element
-     *  The element to transform
+     * @param transformer
+     *  The transformer to use for transforming data; may be null
      *
      * @return
-     *  The transformed element to write to the output stream.
+     *  this IterableStreamingOutput instance
      */
-    public Object transform(T element) {
-        return element;
+    public IterableStreamingOutput setTransformer(IteratorTransformer<T> transformer) {
+        this.transformer = transformer;
+        return this;
+    }
+
+    /**
+     * Retrieves the iterator transformer this object will use for transforming data before writing
+     * it to the output stream. If no transformer has been set, this method returns null.
+     *
+     * @return
+     *  the transformer to be used for transforming data, or null if a transformer has not been set
+     */
+    public IteratorTransformer<T> getTransformer() {
+        return this.transformer;
     }
 }
