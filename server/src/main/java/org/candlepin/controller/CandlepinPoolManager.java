@@ -1694,21 +1694,14 @@ public class CandlepinPoolManager implements PoolManager {
             Entitlement entitlement = entsToRevoke.get(i);
             batch.add(entitlement);
 
-            // We work in batches of maximum size 1000.
-            if (i % 1000 == 0) {
-                Set<Entitlement> modifiedEnts = entitlementCurator.batchListModifying(batch);
-                if (log.isDebugEnabled() && modifiedEnts.size() > 0) {
-                    log.debug("Found modifying entitlements for which we " +
-                        "need to regenerate certificates: {}", getEntIds(modifiedEnts));
-                }
-
-                this.regenerateCertificatesOf(modifiedEnts, true);
-                batch.clear();
+            Set<Entitlement> modifiedEnts = entitlementCurator.batchListModifying(batch);
+            if (log.isDebugEnabled() && modifiedEnts.size() > 0) {
+                log.debug("Found modifying entitlements for which we " +
+                    "need to regenerate certificates: {}", getEntIds(modifiedEnts));
             }
-        }
 
-        if (!batch.isEmpty()) {
-            this.regenerateCertificatesOf(entitlementCurator.batchListModifying(batch), true);
+            this.regenerateCertificatesOf(modifiedEnts, true);
+            batch.clear();
         }
 
         log.debug("Modifier entitlements done.");
