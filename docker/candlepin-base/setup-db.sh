@@ -22,21 +22,21 @@ setup_oracle() {
 
 setup_database() {
   # normalize the flags with true/false
-  USE_MYSQL=${USE_MYSQL:-'false'}
-  USE_POSTGRES=${USE_POSTGRES:-'false'}
-  USE_ORACLE=${USE_ORACLE:-'false'}
+  USING_MYSQL=${USING_MYSQL:-'false'}
+  USING_POSTGRES=${USING_POSTGRES:-'false'}
+  USING_ORACLE=${USING_ORACLE:-'false'}
 
   # set a default
-  if [ $USE_MYSQL = false ] && && [ $USE_POSTGRES = false ] && [ $USE_ORACLE = false ]; then
+  if [ $USING_MYSQL = false ] && [ $USING_POSTGRES = false ] && [ $USING_ORACLE = false ]; then
     # mysql for now
-    USE_MYSQL=true
+    USING_MYSQL=true
   fi
 
-  if [ USE_MSQL = true ];
+  if [ USING_MSQL = true ]; then
     setup_msql
-  elif [USE_POSTGRES = true ];
+  elif [USING_POSTGRES = true ]; then
     setup_postgres
-  elif [ USE_ORACLE = true ];
+  elif [ USING_ORACLE = true ]; then
     setup_oracle
   fi
 }

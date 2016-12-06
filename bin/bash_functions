@@ -147,10 +147,11 @@ init_postgresql_jdbc() {
 recreate_mysql() {
     local db_name="$1"
     local db_user="${2:-$db_name}"
+    local db_host="${DBHOSTNAME:-'localhost'}"
     local password="$DBPASSWORD"
     [ -z "$password" ] && password=''
-    mysqladmin --user="$db_user" --password="$password" --force drop "$db_name"
-    mysqladmin --user="$db_user" --password="$password" create "$db_name"
+    mysqladmin -h $db_host --user="$db_user" --password="$password" --force drop "$db_name"
+    mysqladmin -h $db_host --user="$db_user" --password="$password" create "$db_name"
     evalrc $? "mysqladmin create failed"
 }
 
@@ -158,7 +159,7 @@ init_mysql_jdbc() {
     local db_name="$1"
     JDBC_DRIVER="com.mysql.jdbc.Driver"
     JDBC_JAR="/usr/share/java/mysql-connector-java.jar"
-    JDBC_URL="jdbc:mysql:///$db_name"
+    JDBC_URL="jdbc:mysql://$DBHOSTNAME/$db_name"
 }
 
 recreate_oracle () {

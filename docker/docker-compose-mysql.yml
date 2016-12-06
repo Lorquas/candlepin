@@ -5,9 +5,11 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
-  test:
+  candlepin:
     build: candlepin-base
     environment:
-      USE_MYSQL: true
+      USING_MYSQL: true
+      DBHOSTNAME: db
+      DBPASSWORD: password
     depends_on:
       - db
