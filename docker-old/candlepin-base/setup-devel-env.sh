@@ -12,29 +12,24 @@ export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION
 yum install -y epel-release
 
 PACKAGES=(
-    gcc
-    gettext
-    git
     hostname
-    java-$JAVA_VERSION-openjdk-devel
+    rsyslog
+    wget
+    vim-enhanced
+    python-pip
+    git
+    tig
+    gcc
+    tomcat
     java-1.6.0-openjdk-devel
     java-1.7.0-openjdk-devel
     java-1.8.0-openjdk-devel
-    libxml2-python
+    java-$JAVA_VERSION-openjdk-devel
     liquibase
-    mariadb
-    mysql-connector-java
+    libxml2-python
     openssl
-    postgresql
-    postgresql-jdbc
-    python-pip
-    rsyslog
-    tig
+    gettext
     tmux
-    qpid-proton-c-devel
-    tomcat
-    vim-enhanced
-    wget
 )
 
 yum install -y ${PACKAGES[@]}

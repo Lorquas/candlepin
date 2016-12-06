@@ -1,0 +1,13 @@
+version: '2'
+services:
+  db:
+    image: centos/mysql-56-centos7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+  test:
+    build: candlepin-base
+    environment:
+      USE_MYSQL: true
+    depends_on:
+      - db
