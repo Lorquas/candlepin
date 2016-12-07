@@ -13,7 +13,14 @@ setup_mysql() {
 }
 
 setup_postgres() {
-  echo "IMPLEMENT ME"
+    # Moving to setup-devel-env.sh
+    # yum install -y postgresql postgresql-server postgresql-jdbc
+
+    initdbcmd="/usr/bin/initdb --pgdata='$PGDATA' --auth='ident' --auth='trust'"
+
+    postgres -h db -c "$initdbcmd" >> "$PGLOG" 2>&1 < /dev/null
+    postgres -h db -c 'createuser -dls candlepin'
+    postgres -h db -c 'createuser -dls gutterball'
 }
 
 setup_oracle() {
