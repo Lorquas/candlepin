@@ -7,7 +7,7 @@ setup_mysql() {
     mysql --user=root mysql --password=password --host=db --execute="CREATE USER 'candlepin'; GRANT ALL PRIVILEGES on candlepin.* TO 'candlepin' WITH GRANT OPTION"
     mysql --user=root mysql --password=password --host=db --execute="CREATE USER 'gutterball'; GRANT ALL PRIVILEGES on gutterball.* TO 'gutterball' WITH GRANT OPTION"
     mysqladmin --host=db --user="candlepin" create candlepin
-    mysqladmin --hosth=db --user="gutterball" create gutterball
+    mysqladmin --host=db --user="gutterball" create gutterball
 
     echo "USE_MYSQL=\"1\"" >> /root/.candlepinrc
 }
@@ -39,8 +39,8 @@ setup_database() {
     USING_MYSQL=true
   fi
 
-  if [ $USING_MSQL = true ]; then
-    setup_msql
+  if [ $USING_MYSQL = true ]; then
+    setup_mysql
   elif [ $USING_POSTGRES = true ]; then
     setup_postgres
   elif [ $USING_ORACLE = true ]; then

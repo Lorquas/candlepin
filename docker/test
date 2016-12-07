@@ -1,0 +1,10 @@
+#!/bin/bash -x
+
+docker-compose stop
+docker-compose rm -f -a
+docker-compose build
+docker-compose run candlepin /usr/bin/cp-test -t -u -r
+RETVAL=$?
+docker-compose stop
+
+exit $RETVAL
