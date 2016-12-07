@@ -18,4 +18,5 @@ COPY cp-test /usr/bin/
 
 EXPOSE 8443 22
 
-CMD ["/usr/bin/cp-test", "-t", "-u", "-r"]
+#CMD ["/usr/bin/cp-test", "-t", "-u", "-r"]
+CMD ["true"]

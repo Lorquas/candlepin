@@ -39,11 +39,11 @@ setup_database() {
     USING_MYSQL=true
   fi
 
-  if [ USING_MSQL = true ]; then
+  if [ $USING_MSQL = true ]; then
     setup_msql
-  elif [USING_POSTGRES = true ]; then
+  elif [ $USING_POSTGRES = true ]; then
     setup_postgres
-  elif [ USING_ORACLE = true ]; then
+  elif [ $USING_ORACLE = true ]; then
     setup_oracle
   fi
 }
