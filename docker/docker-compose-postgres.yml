@@ -1,7 +1,7 @@
 version: '2'
 services:
   db:
-    image: centos/postgres-95-centos7
+    image: centos/postgresql-95-centos7
     restart: always
     environment:
       POSTGRESQL_USER: candlepin
