@@ -14,6 +14,10 @@ set -e
 
 source /etc/profile
 
+if [ -f /root/setup-db.sh ]; then
+  source /root/setup-db.sh
+fi
+
 export HOME=/root
 
 export SUPERVISOR=1
@@ -289,6 +293,10 @@ if [ "$DEPLOY" == "1" ]; then
         DEPLOY_FLAGS="$DEPLOY_FLAGS -q"
     fi
     
+
+    # set up the database from setup-db.sh
+    setup_database
+
     bin/deploy $DEPLOY_FLAGS
     sleep 7
 fi
