@@ -10,7 +10,7 @@ services:
   candlepin:
     build: candlepin-base/
     environment:
-      USING_POSTGRES: true
+      USING_POSTGRES: "true"
       DBHOSTNAME: db
       DBPASSWORD: candlepin
     depends_on:
