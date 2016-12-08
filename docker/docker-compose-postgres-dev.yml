@@ -13,6 +13,7 @@ services:
       USING_POSTGRES: "true"
       DBHOSTNAME: db
       DBPASSWORD: candlepin
+    privileged: true
     volumes:
       - ../:/candlepin-dev
     depends_on:

@@ -3,7 +3,7 @@
 TEST_CMD="/usr/bin/cp-test -t -u -r"
 BUILD='false'
 DEV='false'
-DIR="${BASH_SOURCE[0]}"
+DIR="$(git rev-parse --show-toplevel)/docker/"
 
 usage() {
 	cat << USAGE
