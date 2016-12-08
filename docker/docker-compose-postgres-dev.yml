@@ -1,0 +1,19 @@
+version: '2'
+services:
+  db:
+    image: centos/postgresql-95-centos7
+    restart: always
+    environment:
+      POSTGRESQL_USER: candlepin
+      POSTGRESQL_PASSWORD: candlepin
+      POSTGRESQL_DATABASE: candlepin
+  candlepin:
+    build: candlepin-base/
+    environment:
+      USING_POSTGRES: "true"
+      DBHOSTNAME: db
+      DBPASSWORD: candlepin
+    volumes:
+      - ../:/candlepin-dev
+    depends_on:
+      - db
