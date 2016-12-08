@@ -10,8 +10,6 @@ services:
     environment:
       USING_MYSQL: "true"
       DBHOSTNAME: db
-      DBPASSWORD: password
-    #user: "1000:1000"
     privileged: true
     volumes:
       - ../:/candlepin-dev

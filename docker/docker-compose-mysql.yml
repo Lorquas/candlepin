@@ -10,6 +10,5 @@ services:
     environment:
       USING_MYSQL: "true"
       DBHOSTNAME: db
-      DBPASSWORD: password
     depends_on:
       - db
