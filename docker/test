@@ -22,7 +22,7 @@ OPTIONS:
 USAGE
 }
 
-while getopts ":bc:d" opt; do
+while getopts ":bc:dmop" opt; do
   case $opt in
     b) BUILD=true;;
     c) TEST_CMD="$OPTARG";;
