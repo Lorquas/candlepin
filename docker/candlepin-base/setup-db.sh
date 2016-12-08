@@ -22,7 +22,7 @@ setup_mysql() {
     # moving install to setup-devel-env.sh
     # yum install -y mariadb mysql-connector-java
 
-		# wait for sql container to spin up
+    # wait for sql container to spin up
     retry 20 mysqladmin --host=db --user=root --password=password status
 
     mysql --user=root mysql --password=password --host=db --execute="CREATE USER 'candlepin'; GRANT ALL PRIVILEGES on candlepin.* TO 'candlepin' WITH GRANT OPTION"
