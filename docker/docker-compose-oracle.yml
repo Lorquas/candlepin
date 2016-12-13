@@ -1,0 +1,12 @@
+version: '2'
+services:
+  db:
+    build: oracle/
+    restart: always
+  candlepin:
+    build: candlepin-base/
+    environment:
+      USING_ORACLE: "true"
+      DBHOSTNAME: db
+    depends_on:
+      - db
