@@ -16,4 +16,7 @@ COPY launch-oracle.sh /usr/bin/
 
 RUN /bin/bash /root/setup-oracle-buildtime.sh
 
+EXPOSE 8090
+EXPOSE 1521
+
 CMD ["/usr/bin/launch-oracle"]
