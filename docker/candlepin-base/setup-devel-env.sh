@@ -28,6 +28,7 @@ PACKAGES=(
     postgresql
     postgresql-jdbc
     python-pip
+    qpid-proton-cpp-devel
     rsyslog
     tig
     tmux

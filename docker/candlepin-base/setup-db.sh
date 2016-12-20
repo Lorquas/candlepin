@@ -34,6 +34,7 @@ setup_mysql() {
 }
 
 setup_postgres() {
+    retry 20 pg_isready -h db
     PGDATA=/var/lib/pgsql/data
     PGPORT=5432
     PGLOG=/root/initdb.log

@@ -4,7 +4,6 @@ MAINTAINER Chris Rog <crog@redhat.com>
 
 ENV LANG en_US.UTF-8
 
-COPY setup-db.sh /root/
 COPY setup-devel-env.sh /root/
 RUN /bin/bash /root/setup-devel-env.sh
 
@@ -15,6 +14,7 @@ RUN /bin/bash /root/setup-supervisord.sh
 # Script for actually running the tests, could theoretically move to candlepin
 # checkout for easier updating.
 COPY cp-test /usr/bin/
+COPY setup-db.sh /root/
 
 EXPOSE 8443 22
 

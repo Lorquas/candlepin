@@ -44,7 +44,7 @@ while getopts ":bc:dmop" opt; do
 done
 
 if [ $DEV = true ]; then
-  if [ -z $COMPOSE_ARGS ]; then
+  if [ -z "$COMPOSE_ARGS" ]; then
     COMPOSE_ARGS="-f $DIR/docker-compose-dev.yml"
   else
     COMPOSE_ARGS="$(echo $COMPOSE_ARGS | sed -e 's/.yml$/-dev.yml/')"
