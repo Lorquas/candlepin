@@ -261,13 +261,13 @@ fi
 
 if [ "$QPID" == "1" ]; then
     echo "Setting up Qpid"
-    pushd . 
+    pushd .
     cd ../gutterball/bin/qpid
-    # Do a cleanup 
+    # Do a cleanup
     ./configure-qpid.sh -c
     # Reconfigure
     ./configure-qpid.sh
-    popd 
+    popd
 fi
 
 
@@ -288,11 +288,11 @@ if [ "$DEPLOY" == "1" ]; then
     if [ "$VERBOSE" == "1" ]; then
         DEPLOY_FLAGS="$DEPLOY_FLAGS -v"
     fi
-    
+
     if [ "$QPID" == "1" ]; then
         DEPLOY_FLAGS="$DEPLOY_FLAGS -q"
     fi
-    
+
 
     # set up the database from setup-db.sh
     setup_database
