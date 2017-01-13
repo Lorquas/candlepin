@@ -2,7 +2,6 @@
 
 TEST_CMD="/usr/bin/cp-test -t -u -r"
 BUILD='false'
-DEV='false'
 DIR="$(git rev-parse --show-toplevel)/docker/"
 
 usage() {
@@ -14,7 +13,6 @@ OPTIONS:
   -b        rebuilds the candlepin container
   -c CMD    sets the command to be run by the container
               default: $TEST_CMD
-  -d        dev mode. Mounts this repo to /candlepin-dev
   -m        use mysql
   -o        use oracle
   -p        use postgres
@@ -26,7 +24,6 @@ while getopts ":bc:dmop" opt; do
   case $opt in
     b) BUILD=true;;
     c) TEST_CMD="$OPTARG";;
-    d) DEV=true;;
     m) COMPOSE_ARGS="-f $DIR/docker-compose-mysql.yml";;
     o) COMPOSE_ARGS="-f $DIR/docker-compose-oracle.yml";;
     p) COMPOSE_ARGS="-f $DIR/docker-compose-postgres.yml";;
@@ -43,21 +40,9 @@ while getopts ":bc:dmop" opt; do
   esac
 done
 
-if [ $DEV = true ]; then
-  if [ -z "$COMPOSE_ARGS" ]; then
-    COMPOSE_ARGS="-f $DIR/docker-compose-dev.yml"
-  else
-    COMPOSE_ARGS="$(echo $COMPOSE_ARGS | sed -e 's/.yml$/-dev.yml/')"
-  fi
-  # idea here was to use env var in docker compose file
-  # but won't really work until version 2.1 due to default vars: ${VAR-default}
-  # hard coding relative path in compose.yml for now
-  # $MOUNT="-v $(git rev-parse --show-toplevel):/candlepin-dev"
-fi
-
 docker-compose stop
 docker-compose rm -f -a
-[ $BUILD = true ] && docker-compose build
+[ $BUILD = true ] && docker-compose $COMPOSE_ARGS build
 docker-compose $COMPOSE_ARGS run --rm candlepin $TEST_CMD
 RETVAL=$?
 docker-compose stop

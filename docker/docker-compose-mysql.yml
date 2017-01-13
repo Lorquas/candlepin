@@ -10,5 +10,8 @@ services:
     environment:
       USING_MYSQL: "true"
       DBHOSTNAME: db
+    privileged: true
+    volumes:
+      - ../:/candlepin-dev
     depends_on:
       - db

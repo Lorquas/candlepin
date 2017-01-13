@@ -8,5 +8,8 @@ services:
     environment:
       USING_ORACLE: "true"
       DBHOSTNAME: db
+    privileged: true
+    volumes:
+      - ../:/candlepin-dev
     depends_on:
       - db

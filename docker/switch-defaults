@@ -19,7 +19,6 @@ switcher() {
   echo "Setting default to: $1"
   cd $DIR
   ln --force -s docker-compose-$1.yml docker-compose.yml
-  ln --force -s docker-compose-$1-dev.yml docker-compose-dev.yml
   cd - >/dev/null 2>&1
   exit 0
 }

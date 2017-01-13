@@ -3,7 +3,7 @@
 # Sets a system up for a candlepin development environment (minus a db,
 # handled separately), and an initial clone of candlepin.
 
-set -e
+set -ve
 
 export JAVA_VERSION=1.8.0
 export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION
@@ -28,7 +28,7 @@ PACKAGES=(
     postgresql
     postgresql-jdbc
     python-pip
-    qpid-proton-cpp-devel
+    qpid-proton-c-devel
     rsyslog
     tig
     tmux
@@ -53,14 +53,7 @@ export HOME=/root
 export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION
 BASHRC
 
-# Create an initial candlepin checkout at /candlepin in image to help decrease
-# the amount of time to run tests later on.
-git clone https://github.com/candlepin/candlepin.git /candlepin
-cd /candlepin
-
-# Allow for grabbing specific pull requests
-git config --add remote.origin.fetch "+refs/pull/*:refs/remotes/origin/pr/*"
-git pull
+cd /root/candlepin-deps
 
 # Setup and install rvm, ruby and pals
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3

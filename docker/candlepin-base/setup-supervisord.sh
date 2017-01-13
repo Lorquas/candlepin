@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -e
+set -ve
 
 setup_supervisor() {
     yum install -y supervisor
