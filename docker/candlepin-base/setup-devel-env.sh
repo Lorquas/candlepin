@@ -28,7 +28,6 @@ PACKAGES=(
     postgresql
     postgresql-jdbc
     python-pip
-    qpid-proton-c-devel
     rsyslog
     tig
     tmux
@@ -53,7 +52,8 @@ export HOME=/root
 export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION
 BASHRC
 
-cd /root/candlepin-deps
+git clone https://github.com/candlepin/candlepin.git /candlepin
+cd /candlepin
 
 # Setup and install rvm, ruby and pals
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
