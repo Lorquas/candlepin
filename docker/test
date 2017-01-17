@@ -14,17 +14,19 @@ OPTIONS:
   -c CMD    sets the command to be run by the container
               default: $TEST_CMD
   -m        use mysql
+  -n NAME   Sets the project name for the docker-compose run
   -o        use oracle
   -p        use postgres
 
 USAGE
 }
 
-while getopts ":bc:dmop" opt; do
+while getopts ":bc:dmn:op" opt; do
   case $opt in
     b) BUILD=true;;
     c) TEST_CMD="$OPTARG";;
     m) COMPOSE_ARGS="-f $DIR/docker-compose-mysql.yml";;
+    n) PROJ_NAME="-p $OPTARG";;
     o) COMPOSE_ARGS="-f $DIR/docker-compose-oracle.yml";;
     p) COMPOSE_ARGS="-f $DIR/docker-compose-postgres.yml";;
     \?)
@@ -40,11 +42,13 @@ while getopts ":bc:dmop" opt; do
   esac
 done
 
-docker-compose stop
-docker-compose rm -f -a
+# PROJ_NAME should be set in a jenkins environment. It allows multiple
+#  instaces of the compose to run without clobbering eachother.
+docker-compose $PROJ_NAME stop
+docker-compose $PROJ_NAME rm -f
 [ $BUILD = true ] && docker-compose $COMPOSE_ARGS build
-docker-compose $COMPOSE_ARGS run --rm candlepin $TEST_CMD
+docker-compose $PROJ_NAME $COMPOSE_ARGS run --rm candlepin $TEST_CMD
 RETVAL=$?
-docker-compose stop
+docker-compose $PROJ_NAME stop
 
 exit $RETVAL

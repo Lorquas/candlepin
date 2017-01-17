@@ -18,7 +18,7 @@ PACKAGES=(
     hostname
     java-$JAVA_VERSION-openjdk-devel
     java-1.6.0-openjdk-devel
-    java-1.7.0-openjdk-devel
+    #java-1.7.0-openjdk-devel
     java-1.8.0-openjdk-devel
     libxml2-python
     liquibase
