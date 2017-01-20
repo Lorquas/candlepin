@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -ve
+set -e
 
 setup_supervisor() {
     yum install -y supervisor
@@ -81,6 +81,7 @@ SUPERVISOR=1
 CANDLEPINRC
 }
 
+set -v
 setup_supervisor
 setup_ssh
 setup_tomcat
