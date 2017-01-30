@@ -14,11 +14,17 @@ COPY setup-oracle-buildtime.sh /root/
 COPY setup-oracle-runtime.sh /root/
 COPY xe.rsp /root/
 COPY launch-oracle.sh /usr/bin/
-RUN yum install -y epel-release
-RUN /bin/bash /root/setup-supervisord.sh
-RUN /bin/bash /root/setup-oracle-buildtime.sh
+RUN yum install -y epel-release \
+      && /usr/bin/yum clean all \
+      && /usr/bin/find /var/log/ -type f -exec cp /dev/null {} \;
+RUN /bin/bash /root/setup-supervisord.sh \
+      && /usr/bin/yum clean all \
+      && /usr/bin/find /var/log/ -type f -exec cp /dev/null {} \;
+RUN /bin/bash /root/setup-oracle-buildtime.sh \
+      && /usr/bin/yum clean all \
+      && /usr/bin/find /var/log/ -type f -exec cp /dev/null {} \;
 
 EXPOSE 8090
 EXPOSE 1521
 
-CMD ["/usr/bin/launch-oracle"]
+CMD ["/usr/bin/launch-oracle.sh"]
