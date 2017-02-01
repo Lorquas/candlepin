@@ -54,7 +54,7 @@ setup_postgres() {
 }
 
 setup_oracle() {
-  echo "USE_ORACLE\"1\"" >> /root/.candlepinrc
+  echo "USE_ORACLE=\"1\"" >> /root/.candlepinrc
 }
 
 setup_database() {

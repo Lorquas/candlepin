@@ -2,6 +2,8 @@
 
 set -e
 
+source /root/dockerlib.sh
+
 setup_supervisor() {
     yum install -y supervisor
     mkdir -p /var/log/supervisor
@@ -87,3 +89,4 @@ setup_ssh
 setup_tomcat
 setup_qpidd
 setup_candlepinrc
+cleanup_env
