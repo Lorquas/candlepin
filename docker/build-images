@@ -59,7 +59,7 @@ fi
 tag_it() {
   TAG_IMAGE=${IMAGE:-'candlepin-base'}
   CP_VERSION="$( git describe | cut -d- -f 2 )"
-  docker tag -f $REGISTRY/$TAG_IMAGE:latest $REGISTRY/$TAG_IMAGE:$CP_VERSION
+  docker tag $REGISTRY/$TAG_IMAGE:latest $REGISTRY/$TAG_IMAGE:$CP_VERSION
 }
 
 echo "Building images..."
@@ -74,7 +74,7 @@ if [ "$?" != "0" ]; then
 fi
 
 if [ $PUSH = true ]; then
-  echo "Pushing images to $REGISTRY ..."
+  echo "Pushing images..."
   docker-compose -f docker-compose-build.yml push
 fi
 
