@@ -2,9 +2,10 @@
 
 retry() {
     local -r -i max_attempts="$1"; shift
+    local -r name="$1"; shift
     local -r cmd="$@"
     local -i attempt_num=1
-
+    echo -n "Waiting for $name to start..."
     until $cmd
     do
         if (( attempt_num == max_attempts ))
@@ -12,18 +13,18 @@ retry() {
             echo "Attempt $attempt_num failed and there are no more attempts left!"
             return 1
         else
-            #echo "Attempt $attempt_num failed! Trying again in $attempt_num seconds..."
+            echo -n '.'
             sleep $(( attempt_num++ ))
         fi
     done
+    echo
 }
 
 setup_mysql() {
     # moving install to setup-devel-env.sh
     # yum install -y mariadb mysql-connector-java
 
-    # wait for sql container to spin up
-    retry 20 mysqladmin --host=db --user=root --password=password status
+    retry 20 "mysql" mysqladmin --host=db --user=root --password=password status
 
     mysql --user=root mysql --password=password --host=db --execute="CREATE USER 'candlepin'; GRANT ALL PRIVILEGES on candlepin.* TO 'candlepin' WITH GRANT OPTION"
     mysql --user=root mysql --password=password --host=db --execute="CREATE USER 'gutterball'; GRANT ALL PRIVILEGES on gutterball.* TO 'gutterball' WITH GRANT OPTION"
@@ -34,7 +35,7 @@ setup_mysql() {
 }
 
 setup_postgres() {
-    retry 20 pg_isready -h db
+    retry 20 "postgres" pg_isready -h db
     PGDATA=/var/lib/pgsql/data
     PGPORT=5432
     PGLOG=/root/initdb.log
@@ -53,7 +54,17 @@ setup_postgres() {
     postgres -h db -c 'createuser -dls gutterball'
 }
 
+test_oracle_connection() {
+  ! ( (
+  sqlplus -s "sys/password@//$db_host/XE as sysdba"<<EOF
+select 1 from dual;
+EOF
+  ) | grep -q ERROR )
+}
+
 setup_oracle() {
+  local db_host="${DBHOSTNAME:-'localhost'}"
+  retry 60 "oracle" test_oracle_connection
   echo "USE_ORACLE=\"1\"" >> /root/.candlepinrc
 }
 

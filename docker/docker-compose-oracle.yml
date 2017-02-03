@@ -14,6 +14,7 @@ services:
     environment:
       USING_ORACLE: "true"
       DBHOSTNAME: db
+      DBPASSWORD: candlepin
     privileged: true
     volumes:
       - ../:/candlepin-dev
