@@ -1,0 +1,85 @@
+#!/bin/bash
+
+unset CDPATH
+SCRIPT_NAME=$( basename "$0" )
+SCRIPT_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ORACLE_BINARY='oracle-xe-11.2.0-1.0.x86_64.rpm.zip'
+CURRENT_DIR=$PWD
+
+# defaults
+source $SCRIPT_HOME/.env
+BUILD_ARGS="--no-cache"
+PUSH='false'
+IMAGE=""
+
+usage() {
+    cat <<HELP
+Usage: $SCRIPT_NAME [options] [IMAGE]
+  * if IMAGE is omitted, all images will be built
+
+OPTIONS:
+  -h          Prints this message.
+  -p          Push images to a repository or registry
+  -d <repo>   Specify the destination repo to receive the images; implies -p;
+              defaults to: "$REGISTRY"
+  -c          Use cached layers when building containers; defaults to false
+  -v          Enable verbose/debug output
+HELP
+}
+
+while getopts ":pd:cv" opt; do
+    case $opt in
+        h  ) usage; exit 0;;
+        p  ) PUSH='true';;
+        d  ) PUSH='true'
+             REGISTRY="${OPTARG}";;
+        c  ) BUILD_ARGS="$(echo $BUILD_ARGS | sed -e s/--no-cache//g)";;
+        v  ) set -x;;
+        \?)
+          echo "Invalid option: -$OPTARG" >&2
+          usage
+          exit 1
+          ;;
+        :)
+          echo "Option -$OPTARG requires an argument." >&2
+          usage
+          exit 1
+          ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+# Determine image name
+if [ "$1" != "" ]; then
+    IMAGE=$1
+fi
+
+# tags a docker image with a version
+tag_it() {
+  TAG_IMAGE=${IMAGE:-'candlepin-base'}
+  CP_VERSION="$( git describe | cut -d- -f 2 )"
+  docker tag -f $REGISTRY/$TAG_IMAGE:latest $REGISTRY/$TAG_IMAGE:$CP_VERSION
+}
+
+echo "Building images..."
+wget -O $SCRIPT_HOME/oracle/$ORACLE_BINARY http://auto-services.usersys.redhat.com/rhsm/$ORACLE_BINARY
+cd $SCRIPT_HOME
+docker-compose -f docker-compose-build.yml build $BUILD_ARGS $IMAGE && tag_it
+
+if [ "$?" != "0" ]; then
+    echo "Build not successful."
+    cd $CURRENT_DIR
+    exit 1
+fi
+
+if [ $PUSH = true ]; then
+  echo "Pushing images to $REGISTRY ..."
+  docker-compose -f docker-compose-build.yml push
+fi
+
+if [ "$?" != "0" ]; then
+    echo "Push not successful."
+    cd $CURRENT_DIR
+    exit 1
+fi
