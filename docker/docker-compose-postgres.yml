@@ -8,7 +8,8 @@ services:
       POSTGRESQL_PASSWORD: candlepin
       POSTGRESQL_DATABASE: candlepin
   candlepin:
-    build: candlepin-base/
+    #build: candlepin-base/
+    image: ${REGISTRY}/candlepin-base
     environment:
       USING_POSTGRES: "true"
       DBHOSTNAME: db

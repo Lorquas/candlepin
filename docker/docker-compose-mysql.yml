@@ -6,7 +6,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
   candlepin:
-    build: candlepin-base/
+    #build: candlepin-base/
+    image: ${REGISTRY}/candlepin-base
     environment:
       USING_MYSQL: "true"
       DBHOSTNAME: db
