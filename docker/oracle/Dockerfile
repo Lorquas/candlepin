@@ -66,7 +66,8 @@ RUN yum -y install unzip libaio bc initscripts net-tools openssl && \
     chmod u+x $ORACLE_BASE/$RUN_FILE && \
     chmod u+x $ORACLE_BASE/$PWD_FILE
 
-RUN echo 'export PATH=$PATH' >> /etc/profile.d/oracle_profile.sh && \
+RUN touch /etc/profile.d/oracle_profile.sh && \
+    echo 'export PATH=$PATH' >> /etc/profile.d/oracle_profile.sh && \
     echo 'export ORACLE_BASE=$ORACLE_BASE' >> /etc/profile.d/oracle_profile.sh && \
     echo 'export ORACLE_HOME=$ORACLE_HOME' >> /etc/profile.d/oracle_profile.sh && \
     echo 'export ORACLE_SID=$ORACLE_SID' >> /etc/profile.d/oracle_profile.sh && \

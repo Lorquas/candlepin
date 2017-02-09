@@ -5,7 +5,7 @@ APP_DB_NAME="candlepin"
 gendb() {
     if [ "$USE_ORACLE" == "1" ]; then
         init_oracle_jdbc $APP_DB_NAME
-        [ -z "$DBPASSWORD" ] && DBPASSWORD="candlepin"
+        [ -z "$DBPASSWORD" ] && DBPASSWORD="$APP_DB_NAME"
     elif [ "$USE_MYSQL" == "1" ]; then
         init_mysql_jdbc $APP_DB_NAME
     else

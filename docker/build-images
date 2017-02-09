@@ -55,6 +55,15 @@ if [ "$1" != "" ]; then
     IMAGE=$1
 fi
 
+# get oracle binary
+update_oracle_binary() {
+  cd $SCRIPT_HOME
+  if ( ! sha1sum -c oracle/oracle-xe.zip.sha1 ); then
+    wget -O $SCRIPT_HOME/oracle/$ORACLE_BINARY http://auto-services.usersys.redhat.com/rhsm/$ORACLE_BINARY
+  fi
+  cd -
+}
+
 # tags a docker image with a version
 tag_it() {
   TAG_IMAGE=${IMAGE:-'candlepin-base'}
@@ -63,7 +72,7 @@ tag_it() {
 }
 
 echo "Building images..."
-wget -O $SCRIPT_HOME/oracle/$ORACLE_BINARY http://auto-services.usersys.redhat.com/rhsm/$ORACLE_BINARY
+update_oracle_binary
 cd $SCRIPT_HOME
 docker-compose -f docker-compose-build.yml build $BUILD_ARGS $IMAGE && tag_it
 
