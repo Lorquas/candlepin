@@ -295,7 +295,8 @@ if [ "$DEPLOY" == "1" ]; then
 
 
     # set up the database from setup-db.sh
-    setup_database
+    # only runs if function is defined
+    /usr/bin/type -f setup_database &>/dev/null && setup_database
 
     bin/deploy $DEPLOY_FLAGS
     sleep 7
