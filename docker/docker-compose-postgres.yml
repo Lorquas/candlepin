@@ -5,15 +5,15 @@ services:
     restart: always
     environment:
       POSTGRES_USER: candlepin
-      POSTGRES_PASSWORD: candlepin
-      POSTGRES_DB: candlepin
+      #POSTGRES_PASSWORD: candlepin
+      #POSTGRES_DB: candlepin
       POSTGRES_INITDB_ARGS: "--auth='ident' --auth='trust'"
   candlepin:
     image: ${REGISTRY}/candlepin-base
     environment:
       USING_POSTGRES: "true"
       DBHOSTNAME: db
-      DBPASSWORD: candlepin
+      #DBPASSWORD: candlepin
     privileged: true
     volumes:
       - ../:/candlepin-dev

@@ -129,9 +129,12 @@ recreate_postgresql() {
     local db_name="$1"
     local db_user="${2:-$db_name}"
     local db_host="${DBHOSTNAME:-'localhost'}"
+    # psql must use this env var for password passing
+    if [ -n "${DBPASSWORD}" ]; then
+     export PGPASSWORD="$DBPASSWORD"
+    fi
     # Check if candlepin db exists and drop it if so:
-    # They don't use -w here, which says not to prompt for password, not sure how it gets the password then
-    if [[ `psql -h $db_host -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$db_name'"` == "1" ]]; then
+    if [[ `psql -h $db_host -U $db_user -tAc "SELECT 1 FROM pg_database WHERE datname='$db_name'"` == "1" ]]; then
         info_msg "Database '$db_name' exists.  Dropping it."
         dropdb -h $db_host -w -U "$db_user" "$db_name"
     fi
