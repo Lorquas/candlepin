@@ -36,22 +36,6 @@ setup_mysql() {
 
 setup_postgres() {
     retry 20 "postgres" pg_isready -h db
-    PGDATA=/var/lib/pgsql/data
-    PGPORT=5432
-    PGLOG=/root/initdb.log
-
-    if [ ! -e "$PGLOG" -a ! -h "$PGLOG" ]; then
-            touch "$PGLOG" || return 1
-            # Not sure why postgres user needs to own this or take away rwx from everyone else
-            # chown postgres:postgres "$PGLOG"
-            # chmod go-rwx "$PGLOG"
-    fi
-
-    initdbcmd="/usr/bin/initdb --pgdata='$PGDATA' --auth='ident' --auth='trust'"
-
-    postgres -h db -c "$initdbcmd" >> "$PGLOG" 2>&1 < /dev/null
-    postgres -h db -c 'createuser -dls candlepin'
-    postgres -h db -c 'createuser -dls gutterball'
 }
 
 test_oracle_connection() {
