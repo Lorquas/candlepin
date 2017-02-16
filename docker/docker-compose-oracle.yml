@@ -1,9 +1,6 @@
 version: '2'
 services:
   db:
-    #build: oracle/
-    #image: oracle/database:11.2.0.2-xe
-    #image: oracledb:latest
     image: ${REGISTRY}/oracle_db
     environment:
       ORACLE_SID: XE
@@ -11,7 +8,6 @@ services:
     restart: always
     shm_size: 1G
   candlepin:
-    #build: candlepin-base/
     image: ${REGISTRY}/candlepin-base
     environment:
       USING_ORACLE: "true"

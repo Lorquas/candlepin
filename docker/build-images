@@ -10,7 +10,14 @@ CURRENT_DIR=$PWD
 source $SCRIPT_HOME/.env
 BUILD_ARGS="--no-cache"
 PUSH='false'
-IMAGE=""
+
+evalrc() {
+    if [ "$1" -ne "0" ]; then
+        echo "$2"
+        cd $CURRENT_DIR
+        exit $1
+    fi
+}
 
 usage() {
     cat <<HELP
@@ -55,40 +62,42 @@ if [ "$1" != "" ]; then
     IMAGE=$1
 fi
 
+get_image_names() {
+  python -c 'import yaml,sys;y=yaml.safe_load(sys.stdin); print " ".join(y["services"].keys())' < docker-compose-build.yml
+}
+
 # get oracle binary
 update_oracle_binary() {
-  cd $SCRIPT_HOME
-  if ( ! sha1sum -c oracle/oracle-xe.zip.sha1 ); then
-    wget -O $SCRIPT_HOME/oracle/$ORACLE_BINARY http://auto-services.usersys.redhat.com/rhsm/$ORACLE_BINARY
+  if [[ "${IMAGE:-$(get_image_names)}" =~ "oracle" ]]; then
+    cd $SCRIPT_HOME
+    if ( ! sha1sum -c oracle/oracle-xe.zip.sha1 ); then
+      wget -O $SCRIPT_HOME/oracle/$ORACLE_BINARY http://auto-services.usersys.redhat.com/rhsm/$ORACLE_BINARY
+    fi
+    cd -
   fi
-  cd -
 }
 
 # tags a docker image with a version
-tag_it() {
-  TAG_IMAGE=${IMAGE:-'candlepin-base'}
+tag_images() {
+  TAG_IMAGES=${IMAGE:-$(get_image_names)}
   CP_VERSION="$( git describe | cut -d- -f 2 )"
-  docker tag $REGISTRY/$TAG_IMAGE:latest $REGISTRY/$TAG_IMAGE:$CP_VERSION
+  for IMG in ${TAG_IMAGES}; do
+    docker tag $IMG:latest $REGISTRY/$IMG:latest
+    docker tag $IMG:latest $REGISTRY/$IMG:$CP_VERSION
+  done
 }
 
 echo "Building images..."
 update_oracle_binary
 cd $SCRIPT_HOME
-docker-compose -f docker-compose-build.yml build $BUILD_ARGS $IMAGE && tag_it
-
-if [ "$?" != "0" ]; then
-    echo "Build not successful."
-    cd $CURRENT_DIR
-    exit 1
-fi
+docker-compose -f docker-compose-build.yml build $BUILD_ARGS $IMAGE && tag_images
+evalrc $? "Build not successful."
 
 if [ $PUSH = true ]; then
   echo "Pushing images..."
-  docker-compose -f docker-compose-build.yml push
-fi
-
-if [ "$?" != "0" ]; then
-    echo "Push not successful."
-    cd $CURRENT_DIR
-    exit 1
+  # pushes the version tag
+  for IMG in ${TAG_IMAGES}; do
+    docker push $REGISTRY/$IMG
+    evalrc $? "Push not successful."
+  done
 fi
