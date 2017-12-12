@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'buildr', '1.5.3'
+gem 'bundler'
 # Not a typo - we use both buildr and builder
 gem 'builder'
 gem 'rspec', '~> 3.0'
@@ -13,7 +14,7 @@ gem 'stringex'
 gem 'digest-murmurhash'
 gem 'httpclient'
 gem 'activesupport', '~> 4.2'
-gem 'qpid_proton'
+gem 'qpid_proton', '~> 0.17.0'
 
 # Remove this once we are fully using the new Ruby bindings
 gem 'rest-client', '~> 1.6.0'
